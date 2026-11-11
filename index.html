@@ -720,7 +720,9 @@ td .s { display: block; font-size: 11.5px; color: var(--ink-3); }
     const cs = chart.addCandlestickSeries({ upColor: up, downColor: down, borderVisible: false, wickUpColor: up, wickDownColor: down, priceFormat: { type: "price", precision: 2, minMove: 0.05 } });
     const vs = chart.addHistogramSeries({ priceScaleId: "vol", priceFormat: { type: "volume" }, lastValueVisible: false, priceLineVisible: false });
     chart.priceScale("vol").applyOptions({ scaleMargins: { top: 0.85, bottom: 0 } });
-    const ds = chart.addLineSeries({ color: tok("--accent"), lineWidth: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+    const ds = chart.addLineSeries({ color: tok("--accent"), lineWidth: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false,
+      // on minute charts the daily average can sit far from the day's range; let the candles alone set the scale
+      ...(MINS[ivl] ? { autoscaleInfoProvider: () => null } : {}) });
 
     const dateOf = (t) => (typeof t === "string" ? t : new Date(t * 1000).toISOString().slice(0, 10));
     let rows = [], lines = [], first = true;
@@ -768,7 +770,6 @@ td .s { display: block; font-size: 11.5px; color: var(--ink-3); }
 
     if (first && rows.length) {
       first = false;
-      // minute charts open on the most recent stretch (about a session); drag left for earlier days
       // minute charts open on the latest candles at a readable width; drag left for earlier ones
       if (MINS[ivl] && rows.length * 7 > (host.clientWidth || 600)) { chart.timeScale().applyOptions({ barSpacing: 7 }); chart.timeScale().scrollToRealTime(); }
       else chart.timeScale().fitContent();
